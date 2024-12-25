@@ -2,26 +2,11 @@ from django.db.models import Exists, OuterRef
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .serializers import *
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, status, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework import status
 from .filters import SalesHistoryFilter
 from rest_framework_simplejwt.tokens import RefreshToken
-
-
-def refresh_access_token(request):
-    refresh_token = request.data.get('refresh')  # Получаем refresh token из запроса
-    try:
-        refresh = RefreshToken(refresh_token)
-        access_token = refresh.access_token  # Новый access token
-        # Возвращаем оба токена
-        return Response({
-            'access': str(access_token),
-            'refresh': str(refresh),  # Новый refresh token
-        })
-    except Exception as e:
-        return Response({'detail': str(e)}, status=400)
 
 
 class RegisterView(generics.CreateAPIView):
@@ -32,6 +17,8 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    permission_classes = [permissions.AllowAny]
 
 
 class CustomLoginView(TokenObtainPairView):
