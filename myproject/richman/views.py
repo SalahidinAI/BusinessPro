@@ -2,18 +2,15 @@ from django.db.models import Exists, OuterRef
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .serializers import *
-from rest_framework import generics, status, permissions
-from rest_framework.response import Response
+from rest_framework import generics, status
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .filters import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from .permissions import *
-
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 from .serializers import VerifyResetCodeSerializer
+
 
 @api_view(['POST'])
 def verify_reset_code(request):
