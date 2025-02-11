@@ -4,7 +4,7 @@ from rest_framework import routers
 
 
 router = routers.SimpleRouter()
-router.register(r'group', GroupViewSet, basename='group_list')
+# router.register(r'group', GroupViewSet, basename='group_list')
 
 
 urlpatterns = [
@@ -13,11 +13,22 @@ urlpatterns = [
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
 
-    path('users/', UserProfileListAPIView.as_view(), name='user_list'),
+    path('user/', UserProfileListAPIView.as_view(), name='user_list'),
+    path('user/<int:pk>/', UserProfileEditAPIView.as_view(), name='user_detail'),
 
-    path('users/<int:pk>/', UserProfileEditAPIView.as_view(), name='user_detail'),
+    path('group/', GroupListAPIView.as_view(), name='group_list'),
+    path('group/create/', GroupCreateAPIView.as_view(), name='group_create'),
+    path('group/<int:pk>/', GroupDetailAPIView.as_view(), name='group_detail'),
 
-    path('product/<int:pk>/', ProductDetailAPIView.as_view(), name='product_detail'),
+    path('seller/', SellerListAPIView.as_view(), name='seller_list'),
+    path('seller/create/', SellerCreateAPIView.as_view(), name='seller_create'),
+    path('seller/<int:pk>/', SellerEditAPIView.as_view(), name='seller_edit'),
 
-    path('history/', SalesHistoryAPIView.as_view(), name='history'),
+    path('product/create/', ProductCreateAPIView.as_view(), name='product_create'),
+    path('product/<int:pk>/', ProductDetailAPIView.as_view(), name='product_edit'),
+
+    path('product_size/create/', ProductSizeCreateAPIView.as_view(), name='product_size_create'),
+    path('product_size/<int:pk>/', ProductSizeEditAPIView.as_view(), name='product_size_edit'),
+
+    path('history/', HistoryAPIView.as_view(), name='history_list'),
 ]

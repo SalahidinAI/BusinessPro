@@ -2,23 +2,23 @@ from django.db.models import Exists, OuterRef
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .serializers import *
-from rest_framework import viewsets, generics, status, permissions
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .filters import SalesHistoryFilter
+from .filters import *
 from rest_framework_simplejwt.tokens import RefreshToken
+from .permissions import *
 
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    permission_classes = [permissions.AllowAny]
 
 
 class CustomLoginView(TokenObtainPairView):
@@ -49,28 +49,28 @@ class LogoutView(generics.GenericAPIView):
 class UserProfileListAPIView(generics.ListAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileListSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return UserProfile.objects.filter(id=self.request.user.id)
 
 
 class UserProfileEditAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserProfile.objects.all()
-    serializer_class = UserProfileDetailSerializer
-
-    def get_queryset(self):
-        return UserProfile.objects.filter(password=self.request.user.password)
+    serializer_class = UserProfileEditSerializer
+    permission_classes = [CheckUserEdit]
 
 
-class GroupViewSet(viewsets.ModelViewSet):
+class GroupListAPIView(generics.ListAPIView):
     queryset = Group.objects.all()
+    serializer_class = GroupListSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['products__sizes__size', 'products__sizes__have']
     search_fields = ['products__product_name']
     ordering_fields = ['group_name', 'created_date']
 
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return GroupListSerializer
-        return GroupDetailSerializer
 
+    # здесь фильтр по размеру и проверяется have=True
     def get_queryset(self):
         size_filter = self.request.query_params.get('products__sizes__size')
         if self.request.user.is_authenticated:
@@ -91,31 +91,63 @@ class GroupViewSet(viewsets.ModelViewSet):
         return queryset.distinct()
 
 
-class GroupDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+class GroupDetailAPIView(generics.RetrieveAPIView):
     queryset = Group.objects.all().distinct()
     serializer_class = GroupDetailSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    permission_classes = [CheckEdit]
     filterset_fields = ['products__sizes__size', ]
     search_fields = ['products__product_name']
     ordering_fields = ['group_name', 'created_date']
 
+
+class SellerListAPIView(generics.ListAPIView):
+    queryset = Seller.objects.all()
+    serializer_class = SellerNameSerializer
+
     def get_queryset(self):
-        return Group.objects.filter(owner=self.request.user)
+        return Seller.objects.filter(owner=self.request.user)
+
+
+class SellerCreateAPIView(generics.CreateAPIView):
+    serializer_class = SellerSerializer
+
+
+class SellerEditAPIView(generics.RetrieveUpdateAPIView):
+    queryset = Seller.objects.all()
+    serializer_class = SellerSerializer
+    permission_classes = [CheckEdit]
+
+
+class GroupCreateAPIView(generics.CreateAPIView):
+    serializer_class = GroupSerializer
+
+
+class ProductCreateAPIView(generics.CreateAPIView):
+    serializer_class = ProductSerializer
 
 
 class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductDetailSerializer
+    permission_classes = [CheckProductEdit]
+
+
+class ProductSizeCreateAPIView(generics.CreateAPIView):
+    serializer_class = ProductSizeSerializer
+
+
+class ProductSizeEditAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ProductSize.objects.all()
+    serializer_class = ProductSizeSerializer
+    permission_classes = [CheckProductSizeEdit]
+
+
+class HistoryAPIView(generics.ListAPIView):
+    queryset = History.objects.all()
+    serializer_class = HistorySerializer
+    # filter_backends = [DjangoFilterBackend, SearchFilter]
+    # filterset_class = SalesHistoryFilter
 
     def get_queryset(self):
-        return Product.objects.filter(group__owner=self.request.user)
-
-
-class SalesHistoryAPIView(generics.ListAPIView):
-    queryset = SalesHistory.objects.all()
-    serializer_class = SalesHistorySerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_class = SalesHistoryFilter
-
-    def get_queryset(self):
-        return SalesHistory.objects.filter(owner=self.request.user)
+        return History.objects.filter(user=self.request.user)

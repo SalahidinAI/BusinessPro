@@ -39,15 +39,16 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserProfileListSerializer(serializers.ModelSerializer):
-    date_registered = serializers.DateTimeField(format('%d-%m-%Y %H:%M'))
+    date_registered = serializers.DateTimeField(format='%d-%m-%Y %H:%M')
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'first_name', 'last_name', 'date_registered']
+        fields = ['id', 'password', 'username', 'first_name', 'last_name',
+                  'email', 'age', 'phone', 'date_registered']
 
 
-class UserProfileDetailSerializer(serializers.ModelSerializer):
-    date_registered = serializers.DateTimeField(format('%d-%m-%Y %H:%M'))
+class UserProfileEditSerializer(serializers.ModelSerializer):
+    date_registered = serializers.DateTimeField(format='%d-%m-%Y %H:%M')
 
     class Meta:
         model = UserProfile
@@ -58,23 +59,35 @@ class UserProfileDetailSerializer(serializers.ModelSerializer):
 class SellerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seller
+        fields = '__all__'
+
+
+class SellerNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Seller
         fields = ['seller_name']
 
 
-class GroupListSerializer(serializers.ModelSerializer):
-    group_name = serializers.DateField(format('%d-%m-%Y'))
-    owner = UserProfile()
-    get_count_products = serializers.SerializerMethodField()
-    get_count_sold_sizes = serializers.SerializerMethodField()
-    get_count_all_sizes = serializers.SerializerMethodField()
-    get_group_spend = serializers.SerializerMethodField()
-    get_products_income = serializers.SerializerMethodField()
-    get_products_profit = serializers.SerializerMethodField()
-
+class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ['group_name', 'owner', 'get_count_products', 'get_count_sold_sizes', 'get_count_all_sizes',
-                  'get_group_spend', 'get_products_income', 'get_products_profit'] # , 'get_quantity_products', 'created_date'
+        fields = '__all__'
+
+
+class GroupListSerializer(serializers.ModelSerializer):
+    group_name = serializers.DateField(format='%d-%m-%Y')
+    owner = UserProfile()
+    count_products = serializers.SerializerMethodField()
+    count_sold_sizes = serializers.SerializerMethodField()
+    count_all_sizes = serializers.SerializerMethodField()
+    group_spend = serializers.SerializerMethodField()
+    products_income = serializers.SerializerMethodField()
+    products_profit = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Group  # if u need, add 'created_date'
+        fields = ['id', 'group_name', 'owner', 'count_products', 'count_sold_sizes', 'count_all_sizes',
+                  'group_spend', 'products_income', 'products_profit']
 
     def get_count_products(self, obj):
         return obj.get_count_products()
@@ -95,6 +108,12 @@ class GroupListSerializer(serializers.ModelSerializer):
         return obj.get_products_profit()
 
 
+class ProductSizeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductSize
+        fields = '__all__'
+
+
 class ProductSizeListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductSize
@@ -106,22 +125,29 @@ class ProductSizeDetailSerializer(serializers.ModelSerializer):
     get_profit = serializers.ModelSerializer()
 
     class Meta:
-        model = ProductSize
+        model = ProductSize # if need add sold_date, now I dont need
         fields = ['size', 'have', 'high_price', 'get_profit']
 
     def get_profit(self, obj):
         return obj.get_profit()
 
 
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+
 class ProductListSerializer(serializers.ModelSerializer):
     sizes = ProductSizeListSerializer(many=True, read_only=True)
-    get_products_spend = serializers.ModelSerializer()
-    get_products_income = serializers.ModelSerializer()
-    get_products_profit = serializers.ModelSerializer()
+    products_spend = serializers.SerializerMethodField()
+    products_income = serializers.SerializerMethodField()
+    products_profit = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ['id', 'image', 'product_name', 'article', 'sizes', 'get_products_spend', 'get_products_income', 'get_products_profit'] # 'group', 'description', 'low_price', 'high_price', 'created_date',
+        fields = ['id', 'image', 'product_name', 'article', 'sizes', 'products_spend',
+                  'products_income', 'products_profit'] # 'group', 'description', 'low_price', 'high_price', 'created_date',
 
     def get_products_spend(self, obj):
         return obj.get_products_spend()
@@ -140,26 +166,33 @@ class ProductNameSerializer(serializers.ModelSerializer):
 
 
 class ProductSizeNamePriceSerializer(serializers.ModelSerializer):
-    seller = SellerSerializer()
+    seller = SellerNameSerializer()
 
     class Meta:
         model = ProductSize
         fields = ['size', 'high_price', 'seller']
 
 
-class SalesHistorySerializer(serializers.ModelSerializer):
-    sold_date = serializers.DateTimeField(format('%d-%m-%Y %H:%M'))
+class HistoryItemSerializer(serializers.ModelSerializer):
+    sold_date = serializers.DateTimeField(format='%d-%m-%Y %H:%M')
     product_size = ProductSizeNamePriceSerializer()
     product = ProductNameSerializer()
 
     class Meta:
-        model = SalesHistory
-        fields = ['product', 'product_size',
-                  'product_size', 'sold_date']
+        model = HistoryItem
+        fields = ['product', 'product_size', 'sold_date']
+
+
+class HistorySerializer(serializers.ModelSerializer):
+    history_items = HistoryItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = History
+        fields = ['user', 'history_items']
 
 
 class GroupDetailSerializer(serializers.ModelSerializer):
-    group_name = serializers.DateField(format('%d-%m-%Y'))
+    group_name = serializers.DateField(format='%d-%m-%Y')
     products = ProductListSerializer(many=True, read_only=True)
 
     class Meta:

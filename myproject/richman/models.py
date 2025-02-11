@@ -15,12 +15,10 @@ class UserProfile(AbstractUser):
     def __str__(self):
         return self.first_name
 
-    class Meta:
-        ordering = ['-date_registered']
-
 
 class Seller(models.Model):
     seller_name = models.CharField(max_length=32)
+    owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.seller_name
@@ -70,7 +68,8 @@ class Group(models.Model):
         return total_profit
 
     class Meta:
-        ordering = ['-created_date']
+        unique_together = ('owner', 'group_name')
+        ordering = ['-group_name']
 
 
 class Product(models.Model):
@@ -79,7 +78,7 @@ class Product(models.Model):
     product_name = models.CharField(max_length=64)
     description = models.TextField(null=True, blank=True)
     low_price = models.PositiveSmallIntegerField()
-    article = models.CharField(max_length=50, null=True, blank=True)
+    article = models.CharField(max_length=32, null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -91,10 +90,11 @@ class Product(models.Model):
             return sizes.count() * self.low_price
         return 0
 
+    # убрал if size.high_price потому что поль-тель обязан ее написать в ProductSize
     def get_products_income(self):
         sold_sizes = self.sizes.filter(have=False)
         if sold_sizes.exists():
-            return sum(size.high_price for size in sold_sizes)  # убрал if size.high_price
+            return sum(size.high_price for size in sold_sizes)
         return 0
 
     def get_products_profit(self):
@@ -104,7 +104,7 @@ class Product(models.Model):
         return 0
 
     class Meta:
-        ordering = ['-created_date']
+        ordering = ['-product_name']
 
 
 class ProductSize(models.Model):
@@ -113,7 +113,6 @@ class ProductSize(models.Model):
     have = models.BooleanField(default=True)
     high_price = models.PositiveIntegerField(null=True, blank=True)
     seller = models.ForeignKey(Seller, on_delete=models.SET_NULL, null=True, blank=True)
-    seller_name = models.CharField(max_length=32, blank=True, null=True)
     sold_date = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -122,10 +121,8 @@ class ProductSize(models.Model):
     def save(self, *args, **kwargs):
         if self.seller:
             self.seller_name = self.seller.seller_name
+        self.clean()
         super().save(*args, **kwargs)
-
-    def get_queryset(self):
-        return self.filter(product__group__owner=self.request.user)
 
     def get_profit(self):
         if self.high_price:
@@ -139,19 +136,22 @@ class ProductSize(models.Model):
         if self.high_price is not None and self.high_price < self.product.low_price:
             raise ValidationError({'high_price': 'Поле high_price не может быть меньше, чем low_price продукта.'})
 
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
+
+class History(models.Model):
+    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.user}'
 
 
-class SalesHistory(models.Model):
-    owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+class HistoryItem(models.Model):
+    history = models.ForeignKey(History, on_delete=models.CASCADE, related_name='history_items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     product_size = models.ForeignKey(ProductSize, on_delete=models.CASCADE)
     sold_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.product_size} {self.product} {self.product_size.product.article} {self.product_size.product.low_price} {self.product_size.high_price}"
+        return f"{self.product_size} - {self.product.product_name} | Article: {self.product.article} | Cost: {self.product.low_price} | Sold for: {self.product_size.high_price}"
 
     class Meta:
         ordering = ['-sold_date']
