@@ -1,9 +1,38 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.mail import send_mail
 from django.db import models
 from datetime import date
 from django.core.exceptions import ValidationError
+from django.dispatch import receiver
+from django.urls import reverse
+from django_rest_passwordreset.signals import reset_password_token_created
 from phonenumber_field.modelfields import PhoneNumberField
 from django.core.validators import MinValueValidator, MaxValueValidator
+
+
+import random
+from django.core.mail import send_mail
+from django_rest_passwordreset.signals import reset_password_token_created
+from django.dispatch import receiver
+
+
+@receiver(reset_password_token_created)
+def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
+    email_plaintext_message = "{}?token={}".format(
+        reverse('password_reset:reset-password-request'),
+        reset_password_token.key
+    )
+
+    send_mail(
+        # Subject
+        "Password Reset for {title}".format(title="Some website title"),
+        # Message
+        email_plaintext_message,
+        # From email
+        "noreply@somehost.local",
+        # Recipient list
+        [reset_password_token.user.email]
+    )
 
 
 class UserProfile(AbstractUser):
