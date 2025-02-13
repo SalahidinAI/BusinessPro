@@ -103,7 +103,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class GroupListSerializer(serializers.ModelSerializer):
-    group_name = serializers.DateField(format='%d-%m-%Y')
+    group_date = serializers.DateField(format='%d-%m-%Y')
     owner = UserProfile()
     count_products = serializers.SerializerMethodField()
     count_sold_sizes = serializers.SerializerMethodField()
@@ -114,7 +114,7 @@ class GroupListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group  # if u need, add 'created_date'
-        fields = ['id', 'group_name', 'owner', 'count_products', 'count_sold_sizes', 'count_all_sizes',
+        fields = ['id', 'group_date', 'owner', 'count_products', 'count_sold_sizes', 'count_all_sizes',
                   'group_spend', 'products_income', 'products_profit']
 
     def get_count_products(self, obj):
@@ -220,12 +220,12 @@ class HistorySerializer(serializers.ModelSerializer):
 
 
 class GroupDetailSerializer(serializers.ModelSerializer):
-    group_name = serializers.DateField(format='%d-%m-%Y')
+    group_date = serializers.DateField(format='%d-%m-%Y')
     products = ProductListSerializer(many=True, read_only=True)
 
     class Meta:
         model = Group
-        fields = ['group_name', 'products']
+        fields = ['group_date', 'products']
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):

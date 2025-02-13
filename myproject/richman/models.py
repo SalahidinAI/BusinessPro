@@ -10,7 +10,6 @@ from phonenumber_field.modelfields import PhoneNumberField
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 
-import random
 from django.core.mail import send_mail
 from django_rest_passwordreset.signals import reset_password_token_created
 from django.dispatch import receiver
@@ -55,11 +54,11 @@ class Seller(models.Model):
 
 class Group(models.Model):
     owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='groups_owner')
-    group_name = models.DateField(default=date.today)
+    group_date = models.DateField(default=date.today)
     created_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.group_name} - {self.products.count()}  {self.owner.first_name}'
+        return f'{self.group_date} - {self.products.count()}  {self.owner.first_name}'
 
     def get_count_products(self):
         return self.products.count()
@@ -97,8 +96,8 @@ class Group(models.Model):
         return total_profit
 
     class Meta:
-        unique_together = ('owner', 'group_name')
-        ordering = ['-group_name']
+        unique_together = ('owner', 'group_date')
+        ordering = ['-group_date']
 
 
 class Product(models.Model):

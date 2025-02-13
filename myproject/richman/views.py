@@ -81,7 +81,7 @@ class GroupListAPIView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['products__sizes__size', 'products__sizes__have']
     search_fields = ['products__product_name']
-    ordering_fields = ['group_name', 'created_date']
+    ordering_fields = ['group_date', 'created_date']
 
 
     # здесь фильтр по размеру и проверяется have=True
@@ -112,7 +112,7 @@ class GroupDetailAPIView(generics.RetrieveAPIView):
     permission_classes = [CheckEdit]
     filterset_fields = ['products__sizes__size', ]
     search_fields = ['products__product_name']
-    ordering_fields = ['group_name', 'created_date']
+    ordering_fields = ['group_date', 'created_date']
 
 
 class SellerListAPIView(generics.ListAPIView):
