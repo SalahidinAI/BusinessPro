@@ -87,7 +87,7 @@ class UserProfileEditSerializer(serializers.ModelSerializer):
 class SellerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seller
-        fields = '__all__'
+        fields = ['seller_name']
 
 
 class SellerNameSerializer(serializers.ModelSerializer):
@@ -99,11 +99,11 @@ class SellerNameSerializer(serializers.ModelSerializer):
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = '__all__'
+        fields = ['group_date']
 
 
 class GroupListSerializer(serializers.ModelSerializer):
-    group_date = serializers.DateField(format='%d-%m-%Y')
+    group_date = serializers.DateField(format='%d %B %Y')
     owner = UserProfile()
     count_products = serializers.SerializerMethodField()
     count_sold_sizes = serializers.SerializerMethodField()
@@ -164,6 +164,13 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Ограничиваем выбор групп только для владельца
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            self.fields['group'].queryset = Group.objects.filter(owner=request.user)
 
 
 class ProductListSerializer(serializers.ModelSerializer):

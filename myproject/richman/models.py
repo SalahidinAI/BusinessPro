@@ -44,7 +44,7 @@ class Seller(models.Model):
     owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.seller_name
+        return f'{self.seller_name} {self.owner}'
 
 
 class Group(models.Model):
@@ -53,7 +53,7 @@ class Group(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.group_date} - {self.products.count()}  {self.owner.first_name}'
+        return f'{self.group_date} {self.owner.first_name}' # {self.products.count()}
 
     def get_count_products(self):
         return self.products.count()

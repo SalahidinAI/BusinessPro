@@ -126,6 +126,9 @@ class SellerListAPIView(generics.ListAPIView):
 class SellerCreateAPIView(generics.CreateAPIView):
     serializer_class = SellerSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
 
 class SellerEditAPIView(generics.RetrieveUpdateAPIView):
     queryset = Seller.objects.all()
@@ -136,9 +139,16 @@ class SellerEditAPIView(generics.RetrieveUpdateAPIView):
 class GroupCreateAPIView(generics.CreateAPIView):
     serializer_class = GroupSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
 
 class ProductCreateAPIView(generics.CreateAPIView):
     serializer_class = ProductSerializer
+
+    def perform_create(self, serializer):
+        # Сохраняем продукт с текущим пользователем
+        serializer.save()
 
 
 class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
