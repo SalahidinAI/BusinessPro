@@ -71,7 +71,7 @@ class UserProfileListSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['id', 'password', 'username', 'first_name', 'last_name',
-                  'email', 'age', 'phone', 'date_registered']
+                  'email', 'phone', 'date_registered']
 
 
 class UserProfileEditSerializer(serializers.ModelSerializer):
@@ -80,7 +80,7 @@ class UserProfileEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['id', 'password', 'username', 'first_name', 'last_name',
-                  'email', 'age', 'phone', 'date_registered']
+                  'email', 'phone', 'date_registered']
 
 
 class SellerSerializer(serializers.ModelSerializer):
