@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from datetime import date
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from phonenumber_field.modelfields import PhoneNumberField
@@ -8,7 +7,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.mail import send_mail
 from django_rest_passwordreset.signals import reset_password_token_created
 from django.dispatch import receiver
-
+from django.utils import timezone
+from datetime import date
 
 @receiver(reset_password_token_created)
 def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
@@ -30,8 +30,6 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
 
 
 class UserProfile(AbstractUser):
-    age = models.PositiveSmallIntegerField(default=0, null=True, blank=True,
-                                           validators=[MinValueValidator(10), MaxValueValidator(110)])
     phone = PhoneNumberField(null=True, blank=True, region='KG')
     date_registered = models.DateTimeField(auto_now_add=True)
 
@@ -51,6 +49,11 @@ class Group(models.Model):
     owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='groups_owner')
     group_date = models.DateField(default=date.today)
     created_date = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        super().clean()
+        if self.group_date > date.today():
+            raise ValidationError({'group_date': 'Дата не может быть в будущем!'})
 
     def __str__(self):
         return f'{self.group_date} {self.owner.first_name}' # {self.products.count()}

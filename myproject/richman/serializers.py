@@ -35,8 +35,7 @@ class VerifyResetCodeSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ('username', 'first_name', 'last_name',
-                  'age', 'email', 'phone', 'password', 'date_registered')
+        fields = ('username', 'password')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -101,6 +100,18 @@ class GroupSerializer(serializers.ModelSerializer):
         model = Group
         fields = ['group_date']
 
+    def validate_group_date(self, value):
+        # Проверка на дату в будущем
+        if value > date.today():
+            raise serializers.ValidationError("Дата не может быть в будущем!")
+
+        # Проверка на уникальность (если такая группа уже есть для этого пользователя)
+        owner = self.context['request'].user
+        if Group.objects.filter(owner=owner, group_date=value).exists():
+            raise serializers.ValidationError('Группа с этой датой уже существует для данного пользователя!')
+
+        return value
+
 
 class GroupListSerializer(serializers.ModelSerializer):
     group_date = serializers.DateField(format='%d %B %Y')
@@ -139,7 +150,7 @@ class GroupListSerializer(serializers.ModelSerializer):
 class ProductSizeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductSize
-        fields = '__all__'
+        fields = ['size', 'high_price', 'have', 'seller']
 
 
 class ProductSizeListSerializer(serializers.ModelSerializer):
@@ -163,14 +174,7 @@ class ProductSizeDetailSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = '__all__'
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Ограничиваем выбор групп только для владельца
-        request = self.context.get('request')
-        if request and hasattr(request, 'user'):
-            self.fields['group'].queryset = Group.objects.filter(owner=request.user)
+        fields = ['product_name', 'description', 'low_price', 'image', 'article']
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -181,7 +185,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'image', 'product_name', 'article', 'sizes', 'products_spend',
+        fields = ['image', 'product_name', 'article', 'sizes', 'products_spend',
                   'products_income', 'products_profit'] # 'group', 'description', 'low_price', 'high_price', 'created_date',
 
     def get_products_spend(self, obj):

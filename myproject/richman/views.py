@@ -147,8 +147,14 @@ class ProductCreateAPIView(generics.CreateAPIView):
     serializer_class = ProductSerializer
 
     def perform_create(self, serializer):
-        # Сохраняем продукт с текущим пользователем
-        serializer.save()
+        group_id = self.kwargs.get('group_id')  # Получаем ID группы из URL
+        group = Group.objects.filter(id=group_id, owner=self.request.user).first()
+
+        if not group:
+            raise ValidationError("Группа не найдена или не принадлежит вам.")
+
+        # Сохраняем продукт с автоматически установленной группой
+        serializer.save(group=group)
 
 
 class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -159,6 +165,17 @@ class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 class ProductSizeCreateAPIView(generics.CreateAPIView):
     serializer_class = ProductSizeSerializer
+
+    def perform_create(self, serializer):
+        product_id = self.kwargs.get('product_id')  # Получаем ID группы из URL
+        product = Product.objects.filter(id=product_id, group__owner=self.request.user).first()
+
+        if not product:
+            raise ValidationError("Группа не найдена или не принадлежит вам.")
+
+        # Сохраняем продукт с автоматически установленной группой
+        serializer.save(product=product)
+
 
 
 class ProductSizeEditAPIView(generics.RetrieveUpdateDestroyAPIView):

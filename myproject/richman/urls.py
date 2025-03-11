@@ -20,19 +20,23 @@ urlpatterns = [
     path('user/', UserProfileListAPIView.as_view(), name='user_list'),
     path('user/<int:pk>/', UserProfileEditAPIView.as_view(), name='user_detail'),
 
-    path('group/', GroupListAPIView.as_view(), name='group_list'),
-    path('group/create/', GroupCreateAPIView.as_view(), name='group_create'),
-    path('group/<int:pk>/', GroupDetailAPIView.as_view(), name='group_detail'),
-
+    # sellers
     path('seller/', SellerListAPIView.as_view(), name='seller_list'),
     path('seller/create/', SellerCreateAPIView.as_view(), name='seller_create'),
     path('seller/<int:pk>/', SellerEditAPIView.as_view(), name='seller_edit'),
 
-    path('product/create/', ProductCreateAPIView.as_view(), name='product_create'),
+    # groups
+    path('group/', GroupListAPIView.as_view(), name='group_list'),
+    path('group/create/', GroupCreateAPIView.as_view(), name='group_create'),
+    path('group/<int:pk>/', GroupDetailAPIView.as_view(), name='group_detail'),
+
+    # products
+    path('group/<int:group_id>/product/create/', ProductCreateAPIView.as_view(), name='product_create'),
     path('product/<int:pk>/', ProductDetailAPIView.as_view(), name='product_edit'),
 
-    path('product_size/create/', ProductSizeCreateAPIView.as_view(), name='product_size_create'),
-    path('product_size/<int:pk>/', ProductSizeEditAPIView.as_view(), name='product_size_edit'),
+    # sizes
+    path('product/<int:product_id>/size/create/', ProductSizeCreateAPIView.as_view(), name='product_size_create'),
+    path('size/<int:pk>/', ProductSizeEditAPIView.as_view(), name='product_size_edit'),
 
     path('history/', HistoryAPIView.as_view(), name='history_list'),
 ]
