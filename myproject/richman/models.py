@@ -3,11 +3,9 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from phonenumber_field.modelfields import PhoneNumberField
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.mail import send_mail
 from django_rest_passwordreset.signals import reset_password_token_created
 from django.dispatch import receiver
-from django.utils import timezone
 from datetime import date
 
 
@@ -125,12 +123,6 @@ class ProductSize(models.Model):
 
     def __str__(self):
         return f'{self.product.product_name}  {self.size}'
-
-    def save(self, *args, **kwargs):
-        if self.seller:
-            self.seller_name = self.seller.seller_name
-        self.clean()
-        super().save(*args, **kwargs)
 
     def get_profit(self):
         if self.high_price:
