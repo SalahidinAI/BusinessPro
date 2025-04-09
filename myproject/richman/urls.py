@@ -3,7 +3,6 @@ from .views import *
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
-
 router = routers.SimpleRouter()
 
 urlpatterns = [

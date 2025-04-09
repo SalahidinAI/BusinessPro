@@ -9,4 +9,3 @@ class SalesHistoryFilter(FilterSet):
     class Meta:
         model = HistoryItem
         fields = ['sold_date__gte', 'sold_date__lte']
-

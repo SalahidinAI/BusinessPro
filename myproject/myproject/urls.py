@@ -24,8 +24,8 @@ from rest_framework import permissions
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Business Project", # можно изменить
-        default_version='v1',),
+        title="Business Project",
+        default_version='v1', ),
     public=True,
     permission_classes=(permissions.AllowAny,),
 )

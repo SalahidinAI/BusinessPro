@@ -10,24 +10,6 @@ from django.dispatch import receiver
 from django.utils import timezone
 from datetime import date
 
-@receiver(reset_password_token_created)
-def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
-    email_plaintext_message = "{}?token={}".format(
-        reverse('password_reset:reset-password-request'),
-        reset_password_token.key
-    )
-
-    send_mail(
-        # Subject
-        "Password Reset for {title}".format(title="Some website title"),
-        # Message
-        email_plaintext_message,
-        # From email
-        "noreply@somehost.local",
-        # Recipient list
-        [reset_password_token.user.email]
-    )
-
 
 class UserProfile(AbstractUser):
     phone = PhoneNumberField(null=True, blank=True, region='KG')
@@ -56,7 +38,7 @@ class Group(models.Model):
             raise ValidationError({'group_date': 'Дата не может быть в будущем!'})
 
     def __str__(self):
-        return f'{self.group_date} {self.owner.first_name}' # {self.products.count()}
+        return f'{self.group_date} {self.owner.first_name}'  # {self.products.count()}
 
     def get_count_products(self):
         return self.products.count()
@@ -181,3 +163,22 @@ class HistoryItem(models.Model):
 
     class Meta:
         ordering = ['-sold_date']
+
+
+@receiver(reset_password_token_created)
+def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
+    email_plaintext_message = "{}?token={}".format(
+        reverse('password_reset:reset-password-request'),
+        reset_password_token.key
+    )
+
+    send_mail(
+        # Subject
+        "Password Reset for {title}".format(title="Some website title"),
+        # Message
+        email_plaintext_message,
+        # From email
+        "noreply@somehost.local",
+        # Recipient list
+        [reset_password_token.user.email]
+    )

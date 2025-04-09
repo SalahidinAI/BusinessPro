@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'django_filters',
     'phonenumber_field',
     'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
     'corsheaders',
     'rest_framework.authtoken',
@@ -162,7 +161,6 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=15),
     "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ('Bearer',),
 }
 

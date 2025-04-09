@@ -19,4 +19,3 @@ class CheckProductEdit(permissions.BasePermission):
 class CheckProductSizeEdit(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return request.user == obj.product.group.owner
-

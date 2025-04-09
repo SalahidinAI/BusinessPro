@@ -5,33 +5,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 
 
-class VerifyResetCodeSerializer(serializers.Serializer):
-    email = serializers.EmailField()  # Email пользователя
-    reset_code = serializers.IntegerField()  # 4-значный код
-    new_password = serializers.CharField(write_only=True)  # Новый пароль
-
-    def validate(self, data):
-        email = data.get('email')
-        reset_code = data.get('reset_code')
-
-        # Проверяем, существует ли указанный код для email
-        try:
-            token = ResetPasswordToken.objects.get(user__email=email, key=reset_code)
-        except ResetPasswordToken.DoesNotExist:
-            raise serializers.ValidationError("Неверный код сброса или email.")
-
-        data['user'] = token.user
-        return data
-
-    def save(self):
-        user = self.validated_data['user']
-        new_password = self.validated_data['new_password']
-
-        # Устанавливаем новый пароль
-        user.set_password(new_password)
-        user.save()
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
@@ -63,6 +36,17 @@ class LoginSerializer(serializers.Serializer):
         if user and user.is_active:
             return user
         raise serializers.ValidationError("Неверные учетные данные")
+
+    def to_representation(self, instance):
+        refresh = RefreshToken.for_user(instance)
+        return {
+            'user': {
+                'username': instance.username,
+                'email': instance.email,
+            },
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+        }
 
 
 class UserProfileListSerializer(serializers.ModelSerializer):
@@ -114,7 +98,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class GroupListSerializer(serializers.ModelSerializer):
-    group_date = serializers.DateField(format='%d %B %Y')
+    group_date = serializers.DateField(format='%d-%m-%Y')
     owner = UserProfile()
     count_products = serializers.SerializerMethodField()
     count_sold_sizes = serializers.SerializerMethodField()
@@ -246,3 +230,30 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['image', 'product_name', 'article', 'description', 'low_price', 'sizes', 'created_date']
+
+
+class VerifyResetCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField()  # Email пользователя
+    reset_code = serializers.IntegerField()  # 4-значный код
+    new_password = serializers.CharField(write_only=True)  # Новый пароль
+
+    def validate(self, data):
+        email = data.get('email')
+        reset_code = data.get('reset_code')
+
+        # Проверяем, существует ли указанный код для email
+        try:
+            token = ResetPasswordToken.objects.get(user__email=email, key=reset_code)
+        except ResetPasswordToken.DoesNotExist:
+            raise serializers.ValidationError("Неверный код сброса или email.")
+
+        data['user'] = token.user
+        return data
+
+    def save(self):
+        user = self.validated_data['user']
+        new_password = self.validated_data['new_password']
+
+        # Устанавливаем новый пароль
+        user.set_password(new_password)
+        user.save()

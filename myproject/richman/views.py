@@ -12,15 +12,6 @@ from rest_framework.response import Response
 from .serializers import VerifyResetCodeSerializer
 
 
-@api_view(['POST'])
-def verify_reset_code(request):
-    serializer = VerifyResetCodeSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response({'message': 'Пароль успешно сброшен.'}, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
@@ -82,7 +73,6 @@ class GroupListAPIView(generics.ListAPIView):
     filterset_fields = ['products__sizes__size', 'products__sizes__have']
     search_fields = ['products__product_name']
     ordering_fields = ['group_date', 'created_date']
-
 
     # здесь фильтр по размеру и проверяется have=True
     def get_queryset(self):
@@ -177,7 +167,6 @@ class ProductSizeCreateAPIView(generics.CreateAPIView):
         serializer.save(product=product)
 
 
-
 class ProductSizeEditAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ProductSize.objects.all()
     serializer_class = ProductSizeSerializer
@@ -187,8 +176,18 @@ class ProductSizeEditAPIView(generics.RetrieveUpdateDestroyAPIView):
 class HistoryAPIView(generics.ListAPIView):
     queryset = History.objects.all()
     serializer_class = HistorySerializer
+
     # filter_backends = [DjangoFilterBackend, SearchFilter]
     # filterset_class = SalesHistoryFilter
 
     def get_queryset(self):
         return History.objects.filter(user=self.request.user)
+
+
+@api_view(['POST'])
+def verify_reset_code(request):
+    serializer = VerifyResetCodeSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({'message': 'Пароль успешно сброшен.'}, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
